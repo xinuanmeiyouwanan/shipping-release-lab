@@ -1,0 +1,39 @@
+name: Shipping Quality Check
+
+on:
+  push:
+    branches:
+      - main
+      - feature/vip-shipping
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Show build identity
+        run: |
+          java -version
+          mvn -version
+          git rev-parse HEAD
+          test -f pom.xml
+
+      - name: Run full Maven quality gate
+        run: mvn -B clean verify
+
+      - name: Upload build reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: target/
